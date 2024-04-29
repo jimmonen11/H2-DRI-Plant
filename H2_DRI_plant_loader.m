@@ -252,25 +252,71 @@ tau_temp = 3600;
 
 tau_temp_desired = 3600*0.5;
 
-P_temp = tau_temp/(Kmetal*tau_temp_desired)
-I_temp = P_metal/tau_temp
+P_temp = tau_temp/(Kmetal*tau_temp_desired);
+I_temp = P_metal/tau_temp;
+
+%% Reycle Compressor 
+
+% Polytropic coefficient assumed to be nearly constant at 1.4
+
+eta_isen = 0.75; % isentropic efficiency of compressor
+eta_motor = 0.95; % compressor motor efficiency
+
+eta_comb = 0.8; %combustion efficiency
 
 
-%%
+%% EAF
 
+EAF_elec_req = 375; % kWhe/tonne steel
+m_O2rate = 45.072; % kg O2/tonne steel
+oxy_eff_tonne = 0.803; % MWhe/tonne O2
+
+
+lime_CO2rate = 0.05; % kg CO2/kg lime consumed
+carbon_CO2rate = 0.98; % kg CO2/kg carbon consumed
+io_CO2rate = 0.02; % kg CO2/kg iron ore
+pell_CO2rate = 0.16; % kg CO2/kg iron ore
+og_CO2rate = 0.105; % kg CO2/kg ls -0.126 from supp of good journal, 0.105 from me
 
 DRIsteel_conv = 1.075; %ratio of tonnes DRI to steel produced
 TPDls = 33.65*3600*24/1000; %DOUBLE CHECK
+ls_prod_kg = TPDls*1000/24; % kg/hr liquid steel
+
+
+
+%% Variable O&M
+
+cIO = 130/1000; % $/kg, cost of iron ore 
+cNG = 7; % $/MMBtu
+cCarbon = 180/1000; % $/kg carbon
+cLime = 100/1000; % $/kg lime
+stack_replace = 3.25; % $/MWh-DC
+MWhNGeaf = 0.08792; %MWh natural gas/tonne ls for EAF
+
+%% Captial Costs
 
 MWelect = 350; %MW of electrolyzer required
 CC_elect = 1200; % $/kW
-CC_eaf = 184;
+CC_eaf = 184; % $/kW
 
 CCsf = 49080*(TPDls*DRIsteel_conv/24*1000)^(0.6538);   
 %CCsf = CC_sf*TPDls*DRIsteel_conv*plant_lt # $, cost of shaft furnace (need to revisit because H2 will be smaller!, should include CF?)
-CCelect = CC_elect*MWelect*1000; % $, cost of electrolyzers (need to revisit with recycle benefit)
-CCeaf = CC_eaf*TPDls*365; %$, cost of electric arc furnace (should include CF?)
+CCelect = CC_elect*MWelect*1000; % $, cost of electrolyzers 
+CCeaf = CC_eaf*TPDls*365; %$, cost of electric arc furnace 
 
+%% Taxes/Insurance and Labor
+tax_rate = 0.02; % tax rate of annual capital cost also insurance;
+
+labor = 60*2080*62; %/yr 60 people making $62/hr
+GA = 0.2*labor; % $/yr, 20% of labor
+
+labor_cost = (labor + GA)/8760/3600; % $/s for labor
+
+% check this!
+BOPother = 69819*ls_prod_kg^0.5584 + 6320*ls_prod_kg^.8000 + 174548*ls_prod_kg^0.5583;
+cool_tower = 60812*(1907.7)^0.6303;
+
+CCbop = BOPother + cool_tower;
 
 % 
 % cooling_tower = 60812*(1907.7*CF)**0.6303
@@ -278,13 +324,3 @@ CCeaf = CC_eaf*TPDls*365; %$, cost of electric arc furnace (should include CF?)
 % 
 % BOPother = 69819*ls_prod_kg**0.5584 + 6320*ls_prod_kg**.8000 + 174548*ls_prod_kg**0.5583
 
-
-labor_elect = 20*2080*62; % $/yr, electrolyzer labor
-labor_steel = 20*2080*62; % $/yr, steel labor
-
-labor = labor_elect + labor_steel; % $/yr, labor w/o G&A
-
-GA_elect = 0.20*labor_elect; % $/yr, electrolyzer G&A
-GA_steel = 0.20*labor_elect; % $/yr, electrolyzer G&A
-
-GA = GA_elect + GA_steel; % $/yr, total G&A labor
