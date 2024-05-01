@@ -324,3 +324,13 @@ CCbop = BOPother + cool_tower;
 % 
 % BOPother = 69819*ls_prod_kg**0.5584 + 6320*ls_prod_kg**.8000 + 174548*ls_prod_kg**0.5583
 
+%%
+
+runner = false;
+
+if runner == true
+    options = simset('SrcWorkspace','current'); %set the workspace to the current one
+    output = sim('H2_DRI_plant',3600*24*5, options);
+    
+    obj_fun_inputs = output.obj_fun_inputs.data(end,:);
+end
