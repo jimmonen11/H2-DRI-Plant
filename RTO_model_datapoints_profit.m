@@ -82,9 +82,9 @@ b = [];
 %opt = -(p.Coefficients(2)*lcoe +  p.Coefficients(3)*co2 +  p.Coefficients(4)*io + p.Coefficients(5)*steel)/(2*p.Coefficients(1))
 %%
 
-lcoe = 59;
-co2 = 329;
-io = 160.96;
+lcoe = 60;
+co2 = 300;
+io = 130;
 steel = 1100;
 
 tp = 750;
@@ -96,3 +96,20 @@ end
 
 close all
 plot(n_plot, p_plot)
+
+% winbox(:,1) = scalefun(250,1000,winbox(:,1)); % molar flow rate of electrolyzer
+% winbox(:,2) = scalefun(-15,250, winbox(:,2)); % LCOE
+% winbox(:,3) = scalefun(50,360, winbox(:,3)); % kg/MWh from grid
+% winbox(:,4) = scalefun(75,170, winbox(:,4)); % buying price of iron ore
+% winbox(:,5) = scalefun(600,1700, winbox(:,5)); % sell price of liquid steel
+
+%%
+ndot_target = 925;
+inputs_interp = interp1q(obj_function_inputs(:,1), obj_function_inputs(:,2:end), ndot_target+1);
+
+mixed_p_scaler = negative_profit(-15, 300, 130, 900,...
+    inputs_interp(1), inputs_interp(2), inputs_interp(3), inputs_interp(4), inputs_interp(5), inputs_interp(6), inputs_interp(7), inputs_interp(8), inputs_interp(9), inputs_interp(10), inputs_interp(11),...
+    CCeaf, CCelect, CCsf, CCbop, tax_rate, labor_cost, cNG, cCarbon, cLime, stack_replace)
+
+
+

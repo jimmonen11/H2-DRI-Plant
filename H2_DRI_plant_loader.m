@@ -198,6 +198,18 @@ end
 
 x_sumstep = x_CH4step  + x_H2step + x_COstep +x_H2Ostep + x_CO2step + x_N2step; %check to make sure equal to 1
 
+x_CH4in = 0.0;
+x_H2in = 0.90;
+x_COin = 0.0;
+x_H2Oin = 0.085;
+x_CO2in = 0.0;
+x_N2in = 0.015;
+Gas_In_Flow = 2078.874*(x_H2in*MM_H2 + x_H2Oin*MM_H2O + x_N2in*MM_N2)/1000; %kg/s
+T_gin = 850 + 273;
+
+P_g_sp = 101325*2.5;
+
+ndotin = 2706;
 
 %% Furnace Geometry Again - Need to Know Height of Furnace
 
@@ -232,6 +244,9 @@ Vdot_g = Vdot_tot*eps_bed;
 P_amb = 101325; 
 
 ndot_inert = (P_amb*Vdot_g)/(T_sin*R);
+%% SOE electrolyzer
+
+SOEeff = 37.5; %kWh/kg H2
 
 %% PID tuning
 
@@ -296,7 +311,7 @@ MWhNGeaf = 0.08792; %MWh natural gas/tonne ls for EAF
 %% Captial Costs
 
 MWelect = 350; %MW of electrolyzer required
-CC_elect = 1200; % $/kW
+CC_elect = 1500; % $/kW
 CC_eaf = 184; % $/kW
 
 CCsf = 49080*(TPDls*DRIsteel_conv/24*1000)^(0.6538);   
