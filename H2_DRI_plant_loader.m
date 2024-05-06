@@ -205,7 +205,8 @@ x_H2Oin = 0.085;
 x_CO2in = 0.0;
 x_N2in = 0.015;
 Gas_In_Flow = 2078.874*(x_H2in*MM_H2 + x_H2Oin*MM_H2O + x_N2in*MM_N2)/1000; %kg/s
-T_gin = 850 + 273;
+
+T_gin = 950 + 273;
 
 P_g_sp = 101325*2.5;
 
@@ -254,13 +255,23 @@ SOEeff = 37.5; %kWh/kg H2
 Kmetal = -0.0435;
 tau_metal = 3.2*3600; 
 
-Kd = 5.29e-4;
-tau_d = 3600*2;
+% Kd = 5.29e-4;
+% tau_d = 3600*2;
 
-tau_metal_desired = 3600*3;
+%Kd = 3.2317e-4;
+% Kd = 38.96;
+
+%Kd = 0.1162;
+Kd = 0.00728;
+tau_d = 5200;
+tau_d = 3600;
+
+
+tau_metal_desired = 3600*0.15;
 
 P_metal = tau_metal/(Kmetal*tau_metal_desired)
 I_metal = P_metal/tau_metal
+D_metal = 0.5*I_metal;
 
 Ktemp = 3.2e-4;
 tau_temp = 3600;
@@ -345,7 +356,7 @@ runner = false;
 
 if runner == true
     options = simset('SrcWorkspace','current'); %set the workspace to the current one
-    output = sim('H2_DRI_plant',3600*24*5, options);
+    output = sim('SOE_H2_DRI_plant',3600*24*5, options);
     
     obj_fun_inputs = output.obj_fun_inputs.data(end,:);
 end

@@ -17,9 +17,9 @@ clc; clear all; close all;
 n_loops = 10;
 
 obj_function_inputs = zeros(n_loops,12);
-ndot_elect = linspace(250, 1000, n_loops);
+ndot_H2O_feed = linspace(30, 145, n_loops);
 
 for i = 1:n_loops
-    obj_function_inputs(i, :) = model_runner(ndot_elect(i));
+    obj_function_inputs(i, :) = model_runner(ndot_H2O_feed(i));
     i
 end
