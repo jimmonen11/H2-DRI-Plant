@@ -64,6 +64,8 @@ R = 8.314; %(m^3*Pa)/(K*mol)
 Solids_In_Flow = 44.1; %kg/s, flow of solids in
 
 T_sin = -10 + 273; %K, solids temperature in
+T_sin = 10 + 273; %K, solids temperature in
+
 P_gin = 101325*1.8; %Pa, pressure of gas in (found via trial and error)
 
 % weight fraction of pellets in
@@ -268,18 +270,19 @@ tau_d = 3600;
 
 
 tau_metal_desired = 3600*0.15;
+tau_metal_desired = 3600*0.1;
 
 P_metal = tau_metal/(Kmetal*tau_metal_desired)
 I_metal = P_metal/tau_metal
 D_metal = 0.5*I_metal;
 
-Ktemp = 3.2e-4;
-tau_temp = 3600;
-
-tau_temp_desired = 3600*0.5;
-
-P_temp = tau_temp/(Kmetal*tau_temp_desired);
-I_temp = P_metal/tau_temp;
+% Ktemp = 3.2e-4;
+% tau_temp = 3600;
+% 
+% tau_temp_desired = 3600*0.5;
+% 
+% P_temp = tau_temp/(Kmetal*tau_temp_desired);
+% I_temp = P_metal/tau_temp;
 
 %% Reycle Compressor 
 
@@ -287,6 +290,8 @@ I_temp = P_metal/tau_temp;
 
 eta_isen = 0.75; % isentropic efficiency of compressor
 eta_motor = 0.95; % compressor motor efficiency
+
+%% Purge and Combustion
 
 eta_comb = 0.8; %combustion efficiency
 
@@ -305,9 +310,15 @@ pell_CO2rate = 0.16; % kg CO2/kg iron ore
 og_CO2rate = 0.105; % kg CO2/kg ls -0.126 from supp of good journal, 0.105 from me
 
 DRIsteel_conv = 1.075; %ratio of tonnes DRI to steel produced
-TPDls = 33.65*3600*24/1000; %DOUBLE CHECK
-ls_prod_kg = TPDls*1000/24; % kg/hr liquid steel
+m_steel = 28.07/1000; %tonne/s steel
 
+ls_prod_kg = 28.07*3600; % kg/hr liquid steel
+DRI_prod_kg = 30.18*3600; % kg/hr DRI
+IO_input_kg = 42.08*3600; % kg/hr IO
+
+m_O2 = m_O2rate*m_steel*3600; %kg/h O2 req
+Qfurnace = 36.72; % MW
+Pcomp = 9.976; % MW
 
 
 %% Variable O&M
@@ -319,30 +330,49 @@ cLime = 100/1000; % $/kg lime
 stack_replace = 3.25; % $/MWh-DC
 MWhNGeaf = 0.08792; %MWh natural gas/tonne ls for EAF
 
+hot_standby_eff = 0.009; %
+
 %% Captial Costs
 
-MWelect = 350; %MW of electrolyzer required
-CC_elect = 1500; % $/kW
-CC_eaf = 184; % $/kW
+MWelect = 224.37; %MW of electrolyzer required
 
-CCsf = 49080*(TPDls*DRIsteel_conv/24*1000)^(0.6538);   
-%CCsf = CC_sf*TPDls*DRIsteel_conv*plant_lt # $, cost of shaft furnace (need to revisit because H2 will be smaller!, should include CF?)
+
+CC_elect = 2000; % $/kW - estimate that down from 2500
+
+CCsf = 49080*(IO_input_kg)^(0.6538);
+%CCsf2 = 250*ls_prod_kg*8760/1000
+
 CCelect = CC_elect*MWelect*1000; % $, cost of electrolyzers 
-CCeaf = CC_eaf*TPDls*365; %$, cost of electric arc furnace 
+
+CCeaf = 1132370*ls_prod_kg^0.4560; %$, cost of electric arc furnace
+%CCeaf = 160*ls_prod_kg*8760/1000
+
+CCpsa = 30622*m_O2^0.6357;
+CCfur = 228860*Qfurnace^0.7848;
+CCcomp = 6151202*Pcomp^0.71;
+CCbop = 69819*ls_prod_kg^0.5584 + 6320*ls_prod_kg^.8000 + 2*174548*ls_prod_kg^0.5583;
+
+TIC = CCsf + CCelect + CCeaf + CCpsa+ CCfur+ CCcomp+ CCbop;
 
 %% Taxes/Insurance and Labor
+
 tax_rate = 0.02; % tax rate of annual capital cost also insurance;
 
-labor = 60*2080*62; %/yr 60 people making $62/hr
+%labor = 60*2080*62 %/yr 60 people making $62/hr
+
+labor = (51*40.85 + 93*30)*8760;
+
 GA = 0.2*labor; % $/yr, 20% of labor
 
 labor_cost = (labor + GA)/8760/3600; % $/s for labor
 
-% check this!
-BOPother = 69819*ls_prod_kg^0.5584 + 6320*ls_prod_kg^.8000 + 174548*ls_prod_kg^0.5583;
-cool_tower = 60812*(1907.7)^0.6303;
+taxes = tax_rate*TIC/8760/3600;
 
-CCbop = BOPother + cool_tower;
+% check this!
+%BOPother = 69819*ls_prod_kg^0.5584 + 6320*ls_prod_kg^.8000 + 174548*ls_prod_kg^0.5583;
+%cool_tower = 60812*(1907.7)^0.6303;
+
+%CCbop = BOPother + cool_tower;
 
 % 
 % cooling_tower = 60812*(1907.7*CF)**0.6303

@@ -1,5 +1,6 @@
-function [mixed_profit] = negative_profit( LCOE, elec_CO2rate, cIO, pLS, MWelect, MWeaf, MWcomp, MWpsa, MWcooltow, MWng, MWng_eaf,m_IO, m_steel, carbon_consume, lime_consume, ...
-    CCeaf, CCelect, CCsf, CCbop, tax_rate, labor_cost, cNG, cCarbon, cLime, stack_replace)
+function [mixed_profit, LCOS, SCE] = negative_profit( LCOE, elec_CO2rate, cIO, pLS, MWelect, MWeaf, MWcomp, MWpsa, MWcooltow, MWng, MWng_eaf,m_IO, m_steel, carbon_consume, lime_consume, ...
+    CCeaf, CCelect, CCsf, CCfur, CCpsa, CCcomp, CCbop, taxes, labor_cost, cNG, cCarbon, cLime, stack_replace,...
+    cost_goal, emissions_goal)
 
 
 % m_steel = tonne liquid steel per second
@@ -20,19 +21,19 @@ stack_cost = MWelect*0.975*stack_replace/3600; % $/s %0.975 is rectifier efficie
 %% LCOS
 CRF = 0.136;
 
-CCann = (CCeaf + CCelect + CCsf + CCbop)*CRF;
+CCann = (CCeaf + CCelect + CCsf + CCfur + CCcomp + CCpsa + CCbop)*CRF;
 CC_cost = CCann/(8760*3600); % $/s for plant capital costs
 
-tax_cost = tax_rate*CC_cost; % $/s 
+LCOS = (io_cost + elec_cost + gas_cost + CC_cost + taxes + labor_cost + carbon_cost + lime_cost + stack_cost)/m_steel;
 
-LCOS = (io_cost + elec_cost + gas_cost + CC_cost + tax_cost + labor_cost + carbon_cost + lime_cost + stack_cost)/m_steel;
+cost = (io_cost + elec_cost + gas_cost + CC_cost + taxes + labor_cost + carbon_cost + lime_cost + stack_cost);
+revenue = m_steel*cost_goal;
 
-cost = (io_cost + elec_cost + gas_cost + CC_cost + tax_cost + labor_cost + carbon_cost + lime_cost + stack_cost);
-revenue = m_steel*582;
+profit  = revenue - cost;
 
-profit  = (revenue - cost);
-
-LCOS_bd = [CCelect*CRF/(8760*3600) CCsf*CRF/(8760*3600) CCeaf*CRF/(8760*3600) CCbop*CRF/(8760*3600) elec_cost  gas_cost  io_cost  carbon_cost + lime_cost + stack_cost labor_cost tax_cost ]/m_steel;
+LCOS_bd = [CCelect*CRF/(8760*3600) CCsf*CRF/(8760*3600) CCeaf*CRF/(8760*3600) ...
+    CCfur*CRF/(8760*3600) CCcomp*CRF/(8760*3600) CCpsa*CRF/(8760*3600)  CCbop*CRF/(8760*3600)...
+    elec_cost  gas_cost  io_cost  carbon_cost + lime_cost + stack_cost labor_cost taxes ]/m_steel;
 
 % ==========================CO2 Emissions==============================
 % 
@@ -61,12 +62,15 @@ mineralCO2 = lime_CO2 + carbon_CO2 + io_CO2; %kg CO2/yr from mineral production/
 SCE = (elec_CO2 + ng_CO2 + EAFog_CO2 + ng_CO2us + pell_CO2 + mineralCO2)/m_steel/1000; % t CO2e/ t ls
 SCE_bd = [ng_CO2  EAFog_CO2  elec_CO2  ng_CO2us   pell_CO2  mineralCO2]/m_steel/1000; % t CO2e/ t ls
 
-emissions = (elec_CO2 + ng_CO2 + EAFog_CO2 + ng_CO2us + pell_CO2 + mineralCO2); %kg/s
+emissions_cost = (elec_CO2 + ng_CO2 + EAFog_CO2 + ng_CO2us + pell_CO2 + mineralCO2); %kg/s
 
 %1.32
 
-emissions_goal = m_steel*1.32*1000; %kg/s
+emissions_revenue = m_steel*emissions_goal*1000; %kg/s
 
-emissions_profit = (emissions_goal - emissions);
+emissions_profit = (emissions_revenue - emissions_cost);
 
-mixed_profit = -(profit + emissions_profit);
+mixed_profit = -(emissions_profit);
+
+
+%mixed_profit = -(profit + emissions_profit);
