@@ -310,15 +310,17 @@ pell_CO2rate = 0.16; % kg CO2/kg iron ore
 og_CO2rate = 0.105; % kg CO2/kg ls -0.126 from supp of good journal, 0.105 from me
 
 DRIsteel_conv = 1.075; %ratio of tonnes DRI to steel produced
-m_steel = 28.07/1000; %tonne/s steel
 
-ls_prod_kg = 28.07*3600; % kg/hr liquid steel
-DRI_prod_kg = 30.18*3600; % kg/hr DRI
-IO_input_kg = 42.08*3600; % kg/hr IO
+m_steel = 30.07/1000; %tonne/s steel
+ls_prod_kg = 30.07*3600; % kg/hr liquid steel
+DRI_prod_kg = 32.32*3600; % kg/hr DRI
+IO_input_kg = 45.07*3600; % kg/hr IO
 
 m_O2 = m_O2rate*m_steel*3600; %kg/h O2 req
-Qfurnace = 36.72; % MW
-Pcomp = 9.976; % MW
+Qfurnace = 40.31; % MW
+Pcomp = 10.77; % MW
+MWelect = 240.452; %MW of electrolyzer required
+Qwater = 6519.8; % m^3/hr for eqivalent 
 
 
 %% Variable O&M
@@ -334,39 +336,43 @@ hot_standby_eff = 0.009; %
 
 %% Captial Costs
 
-MWelect = 224.37; %MW of electrolyzer required
-
-
 CC_elect = 2000; % $/kW - estimate that down from 2500
 
-CCsf = 49080*(IO_input_kg)^(0.6538);
-%CCsf2 = 250*ls_prod_kg*8760/1000
+%CCsf = 49080*(IO_input_kg)^(0.6538)
+CCsf = 250*ls_prod_kg*8760/1000; % Kruger from Bhaskar
 
 CCelect = CC_elect*MWelect*1000; % $, cost of electrolyzers 
 
-CCeaf = 1132370*ls_prod_kg^0.4560; %$, cost of electric arc furnace
-%CCeaf = 160*ls_prod_kg*8760/1000
+%CCeaf = 1132370*ls_prod_kg^0.4560 %$, cost of electric arc furnace
+CCeaf = 160*ls_prod_kg*8760/1000; % Vogl from Bhaskar
 
-CCpsa = 30622*m_O2^0.6357;
+CCpsa = 30622*m_O2^0.6357; % from Rosner all below
 CCfur = 228860*Qfurnace^0.7848;
 CCcomp = 6151202*Pcomp^0.71;
-CCbop = 69819*ls_prod_kg^0.5584 + 6320*ls_prod_kg^.8000 + 2*174548*ls_prod_kg^0.5583;
+CCcooltow = 2*60812*Qwater^0.6303; %twice to account for harder methods...
+CCbop = 69819*ls_prod_kg^0.5584 + 6320*ls_prod_kg^.8000 + 174548*ls_prod_kg^0.5583;
 
-TIC = CCsf + CCelect + CCeaf + CCpsa+ CCfur+ CCcomp+ CCbop;
+TIC = CCsf + CCelect + CCeaf + CCpsa+ CCfur+ CCcomp + CCcooltow + CCbop;
 
 %% Taxes/Insurance and Labor
 
-tax_rate = 0.02; % tax rate of annual capital cost also insurance;
+tax_rate = 0.02 + 0.02; % tax rate of annual capital cost also insurance and maintenance!
+    % Wood gives another 2% for maintenance
 
 %labor = 60*2080*62 %/yr 60 people making $62/hr
 
-labor = (51*40.85 + 93*30)*8760;
+% labor = (51*40.85 + 93*30)*2080;
+% 
+% GA = 0.2*labor; % $/yr, 20% of labor
+% 
+% labor_cost = (labor + GA)/8760/3600 % $/s for labor
 
-GA = 0.2*labor; % $/yr, 20% of labor
+labor_cost = 19*DRI_prod_kg/3600/1000 + 53*ls_prod_kg/3600/1000; % $/s %Wood, Vogel cited by nature art
 
-labor_cost = (labor + GA)/8760/3600; % $/s for labor
 
 taxes = tax_rate*TIC/8760/3600;
+
+CRF = 0.1019; %8% rate with 20 yr plant lifetime - from nature paper (r*(1+r)^20)/((1+r)^20-1)
 
 % check this!
 %BOPother = 69819*ls_prod_kg^0.5584 + 6320*ls_prod_kg^.8000 + 174548*ls_prod_kg^0.5583;
@@ -382,11 +388,42 @@ taxes = tax_rate*TIC/8760/3600;
 
 %%
 
+% LMP = 57.13;
+% GSE = 250.72;
+% 
+% [mixed_p, cost, emissions_cost, LCOS_bd, SCE_bd] = negative_profit(LMP, GSE, 130, 900,...
+%     out.obj_fun_inputs.data(end,2), out.obj_fun_inputs.data(end,3), out.obj_fun_inputs.data(end,4), out.obj_fun_inputs.data(end,5), out.obj_fun_inputs.data(end,6), out.obj_fun_inputs.data(end,7), out.obj_fun_inputs.data(end,8), out.obj_fun_inputs.data(end,9), out.obj_fun_inputs.data(end,10), out.obj_fun_inputs.data(end,11), out.obj_fun_inputs.data(end,12),...
+%     CCeaf, CCelect, CCsf, CCfur, CCpsa, CCcomp, CCcooltow, CCbop, taxes, labor_cost, cNG, cCarbon, cLime, stack_replace,...
+%     10, 10)
+
+
+%%
+
+n=24;
+day1 = 46;
+day2 = 53;
+
+%day1 = 1;
+%day2 = 365;
+
+
+pandcdata = csvread('caiso_lmp_carbon_clean.csv', 1, 1);
+ndot_path = csvread('ndot1.csv');
+
+% ndot_path = ndot_path(day1*n:day2*n,2);
+% pandcdata = pandcdata(day1*n:day2*n,:);
+
+ndot_path = ndot_path(:,3);
+
+tlen = length(ndot_path);
+t = 0:3600:3600*(tlen-1);
+t = t';
+
 runner = false;
 
 if runner == true
     options = simset('SrcWorkspace','current'); %set the workspace to the current one
-    output = sim('SOE_H2_DRI_plant',3600*24*5, options);
+    output = sim('SOE_H2_DRI_plant',3600*24*6, options);
     
     obj_fun_inputs = output.obj_fun_inputs.data(end,:);
 end
