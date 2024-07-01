@@ -1,4 +1,4 @@
-function [mixed_profit, cost, emissions_cost, LCOS_bd, SCE_bd] = negative_profit( LCOE, elec_CO2rate, cIO, pLS, MWelect, MWeaf, MWcomp, MWpsa, MWcooltow, MWng, MWng_eaf,m_IO, m_steel, carbon_consume, lime_consume, ...
+function [mixed_profit, cost, emissions_cost, op_cost, em_noelect, LCOS_bd, SCE_bd] = negative_profit( LCOE, elec_CO2rate, cIO, pLS, MWelect, MWeaf, MWcomp, MWpsa, MWcooltow, MWng, MWng_eaf,m_IO, m_steel, carbon_consume, lime_consume, ...
     CCeaf, CCelect, CCsf, CCfur, CCpsa, CCcomp, CCcooltow, CCbop, taxes, labor_cost, cNG, cCarbon, cLime, stack_replace,...
     cost_goal, emissions_goal)
 
@@ -28,6 +28,9 @@ CC_cost = CCann/(8760*3600); % $/s for plant capital costs
 LCOS = (io_cost + elec_cost + gas_cost + CC_cost + taxes + labor_cost + carbon_cost + lime_cost + stack_cost)/m_steel;
 LCOS
 cost = (io_cost + elec_cost + gas_cost + CC_cost + taxes + labor_cost + carbon_cost + lime_cost + stack_cost);
+
+op_cost = (io_cost + gas_cost + carbon_cost + lime_cost + stack_cost + CC_cost);
+
 revenue = m_steel*cost_goal;
 
 profit  = revenue - cost;
@@ -64,6 +67,8 @@ SCE = (elec_CO2 + ng_CO2 + EAFog_CO2 + ng_CO2us + pell_CO2 + mineralCO2)/m_steel
 SCE_bd = [ng_CO2  EAFog_CO2  elec_CO2  ng_CO2us   pell_CO2  mineralCO2]/m_steel/1000; % t CO2e/ t ls
 
 emissions_cost = (elec_CO2 + ng_CO2 + EAFog_CO2 + ng_CO2us + pell_CO2 + mineralCO2); %kg/s
+em_noelect = (ng_CO2 + EAFog_CO2 + ng_CO2us + pell_CO2 + mineralCO2); %kg/s
+
 
 %1.32
 

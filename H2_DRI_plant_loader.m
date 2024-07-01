@@ -254,35 +254,39 @@ SOEeff = 37.5; %kWh/kg H2
 %% PID tuning
 
 %from step test
-Kmetal = -0.0435;
-tau_metal = 3.2*3600; 
-
-% Kd = 5.29e-4;
-% tau_d = 3600*2;
-
-%Kd = 3.2317e-4;
-% Kd = 38.96;
-
-%Kd = 0.1162;
-Kd = 0.00728;
-tau_d = 5200;
-tau_d = 3600;
+% Kmetal = -0.0435;
+% tau_metal = 3.2*3600; 
+% 
+% tau_metal_desired = 3600*0.1;
+% 
+% P_metal = tau_metal/(Kmetal*tau_metal_desired);
+% I_metal = P_metal/tau_metal;
+% D_metal = 0.5*I_metal;
+% 
+% Kd = 0.00728;
+% tau_d = 3600;
 
 
-tau_metal_desired = 3600*0.15;
-tau_metal_desired = 3600*0.1;
+Kmetal = -0.0283;
+tau_metal = 1.3*3600; 
 
-P_metal = tau_metal/(Kmetal*tau_metal_desired)
-I_metal = P_metal/tau_metal
+tau_metal_desired = 60*3;
+
+
+P_metal = tau_metal/(Kmetal*tau_metal_desired);
+I_metal = P_metal/tau_metal;
 D_metal = 0.5*I_metal;
 
-% Ktemp = 3.2e-4;
-% tau_temp = 3600;
-% 
-% tau_temp_desired = 3600*0.5;
-% 
-% P_temp = tau_temp/(Kmetal*tau_temp_desired);
-% I_temp = P_metal/tau_temp;
+Kd = 0.008729;
+tau_d = 3600*(1.6);
+%tau_d = 3600*(1.7);
+
+
+tau_screw = 60*5; %5 minutes
+K_screw = 0.5;
+
+P_screw = 1/K_screw;
+I_screw = P_screw/tau_screw;
 
 %% Reycle Compressor 
 
@@ -400,7 +404,7 @@ CRF = 0.1019; %8% rate with 20 yr plant lifetime - from nature paper (r*(1+r)^20
 %%
 
 n=24;
-day1 = 46;
+day1 = 155;
 day2 = 53;
 
 %day1 = 1;
@@ -410,13 +414,23 @@ day2 = 53;
 pandcdata = csvread('caiso_lmp_carbon_clean.csv', 1, 1);
 ndot_path = csvread('ndot1.csv');
 
-% ndot_path = ndot_path(day1*n:day2*n,2);
-% pandcdata = pandcdata(day1*n:day2*n,:);
+ndot_path = ndot_path(day1*n+9:end,:);
+pandcdata = pandcdata(day1*n+9:end,:);
 
 ndot_path = ndot_path(:,3);
+% cut ndot_path
+% ndot_path = ndot_path(24:end);
+% ndot_path(1:10) = 150;
+% 
+% pandcdata = pandcdata(24:end,:);
+% pandcdata(1:10,:) = 150
+
+
 
 tlen = length(ndot_path);
 t = 0:3600:3600*(tlen-1);
+
+
 t = t';
 
 runner = false;

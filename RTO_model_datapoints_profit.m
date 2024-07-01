@@ -42,9 +42,10 @@ for i = 1:n_samp
 
     ndot_target = winbox(i,1);
     inputs_interp = interp1q(obj_function_inputs(:,1), obj_function_inputs(:,2:end), ndot_target);
-    [mixed_p(i), cost(i), emissions_cost(i)] = negative_profit(winbox(i,2), winbox(i,3),io,steel,...
+    
+    [mixed_p(i), cost(i), emissions_cost(i), cost_noelect(i), em_noelect(i), ~, ~] = negative_profit(winbox(i,2), winbox(i,3),io,steel,...
     inputs_interp(1), inputs_interp(2), inputs_interp(3), inputs_interp(4), inputs_interp(5), inputs_interp(6), inputs_interp(7), inputs_interp(8), inputs_interp(9), inputs_interp(10), inputs_interp(11),...
-    CCeaf, CCelect, CCsf, CCfur, CCpsa, CCcomp, CCbop, taxes, labor_cost, cNG, cCarbon, cLime, stack_replace,...
+    CCeaf, CCelect, CCsf, CCfur, CCpsa, CCcomp, CCcooltow, CCbop, taxes, labor_cost, cNG, cCarbon, cLime, stack_replace,...
     cost_goal, emissions_goal);
 
 end
@@ -53,12 +54,23 @@ cost_x = [winbox(:,1) winbox(:,2)];
 p_cost = polyfitn(cost_x,cost,2) %crete a quadratic model
 polyvaln(p_cost, [150, 83])
 
+cost_x = [winbox(:,1)];
+p_cost_noelect = polyfitn(cost_x, cost_noelect,2) %crete a quadratic model
+polyvaln(p_cost_noelect, [150])
+
 emissions_cost_x = [winbox(:,1) winbox(:,3)];
 p_emissions_cost = polyfitn(emissions_cost_x,emissions_cost,2) %crete a quadratic model
 polyvaln(p_emissions_cost, [150, 83])
 
 steel_x = obj_function_inputs(:,1); % all the ndot values
 p_steel = polyfitn(steel_x,obj_function_inputs(:,10),2)
+
+MW_x = obj_function_inputs(:,1); % all the ndot values
+p_MW = polyfitn(MW_x, sum(obj_function_inputs(:,2:5),2),2)
+
+
+cost_x = [winbox(:,1)];
+p_em_noelect = polyfitn(cost_x, em_noelect,2)
 
 %%
 
