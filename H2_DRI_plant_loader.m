@@ -1,26 +1,7 @@
 %% Number of discretization modes and type of operation
 
 n_furnace = 75;
-
-changenodes = false; %set to true if plan on changing n_furnace to something other than 75
-
-H2only = true; % set to true for a furnace that only uses H2
-
-steady_state = true; % set to true if want constant inlet conditions to be constant
-
-% set one of these to true to run a dynamic case - only can use 1
-% stepcase 1 has to have H2 false
-stepcase1 = false;
-stepcase2 = false;
-stepcase3 = false;
-
-if steady_state+stepcase1+stepcase2+stepcase3 > 1
-    error('Trying to run a steady state case and a step change case.')
-end
-
-if H2only + stepcase1 > 1
-    error('Hydrogen only case cannot be used with step case 1.')
-end
+H2only = true;
 
 %% Furnace Geometry and Solids Parameters
 % Geometry of furnace, pellets, etc. come from data from a plant in Quebec taken from 
@@ -29,7 +10,7 @@ rho_p = 3528; % kg/m^3 density of a pellet
 eps_bed = 0.5; % m^3 gas/m^3 total
 
 r_furnace = 2.75; %m, radius of reducing section of furnace
-h_furnace = 10; %m, height of reducing section of furnace
+h_furnace = 5; %m, height of reducing section of furnace
 r_p = 15e-3/2; %m, radius of iron ore pellets
 
 %% Constants
@@ -63,7 +44,6 @@ R = 8.314; %(m^3*Pa)/(K*mol)
 %% Solid Inlet Conditions
 Solids_In_Flow = 44.1; %kg/s, flow of solids in
 
-T_sin = -10 + 273; %K, solids temperature in
 T_sin = 10 + 273; %K, solids temperature in
 
 P_gin = 101325*1.8; %Pa, pressure of gas in (found via trial and error)
@@ -77,128 +57,8 @@ w_Cin = 0;
 w_Ganin = 0.0335;
 
 %% Gas Inlet Conditions
+load('initcond_H2.mat')
 
-if H2only == true
-    load('initcond_H2.mat')
-    %load('initcond_H2_10m.mat') % can load 10 m results if want but change h_furnace
-    h_furnace = 5;
-    
-    x_CH4in = 0.0;
-    x_H2in = 0.962059;
-    x_COin = 0.0;
-    x_H2Oin = 0.019314;
-    x_CO2in = 0.0;
-    x_N2in = 0.018627;
-    Gas_In_Flow = 2078.874*(x_H2in*MM_H2 + x_H2Oin*MM_H2O + x_N2in*MM_N2)/1000; %kg/s
-    T_gin = 947 + 273;
-    
-    ndotin = 2078.874;
-    
-else
-    load('initcond_NG.mat')
-    
-    % Steady state NG-DRI conditions
-    x_CH4in = 0.105824828;
-    x_H2in = 0.489526511;
-    x_COin = 0.320711862;
-    x_H2Oin = 0.042557156;
-    x_CO2in = 0.024;
-    x_N2in = 0.017379642;
-    Gas_In_Flow = 2228.1*(x_H2in*MM_H2 + x_COin*MM_CO + x_H2Oin*MM_H2O +x_CO2in*MM_CO2 + x_N2in*MM_N2 + x_CH4in*MM_CH4)/1000; %kg/s
-    T_gin = 947 + 273;
-
-
-end
-
-if changenodes == true %this 'helps' change nodes, but will still required sim time to sort itself out
-
-    T_ginit = interp1([1:1:length(T_ginit)],T_ginit, linspace(1,length(T_ginit),n_furnace));
-    T_sinit = interp1([1:1:length(T_sinit)],T_sinit, linspace(1,length(T_sinit),n_furnace));
-    
-    c_H2Oinit = interp1([1:1:length(c_H2Oinit)],c_H2Oinit, linspace(1,length(c_H2Oinit),n_furnace));
-    c_H2init = interp1([1:1:length(c_H2init)],c_H2init, linspace(1,length(c_H2init),n_furnace));
-    c_N2init = interp1([1:1:length(c_N2init)],c_N2init, linspace(1,length(c_N2init),n_furnace));
-    c_COinit = interp1([1:1:length(c_COinit)],c_COinit, linspace(1,length(c_COinit),n_furnace));
-    c_CO2init =interp1([1:1:length(c_CO2init)],c_CO2init, linspace(1,length(c_CO2init),n_furnace));
-    c_CH4init =interp1([1:1:length(c_CH4init)],c_CH4init, linspace(1,length(c_CH4init),n_furnace));
-    
-    c_Feinit = interp1([1:1:length(c_Feinit)],c_Feinit, linspace(1,length(c_Feinit),n_furnace));
-    c_FeOinit = interp1([1:1:length(c_FeOinit)],c_FeOinit, linspace(1,length(c_FeOinit),n_furnace));
-    c_Fe3O4init = interp1([1:1:length(c_Fe3O4init)],c_Fe3O4init, linspace(1,length(c_Fe3O4init),n_furnace));
-    c_Fe2O3init = interp1([1:1:length(c_Fe2O3init)],c_Fe2O3init, linspace(1,length(c_Fe2O3init),n_furnace));
-    c_Cinit = interp1([1:1:length(c_Cinit)],c_Cinit, linspace(1,length(c_Cinit),n_furnace));
-    
-    
-    nr1init = interp1([1:1:length(nr1init)],nr1init, linspace(1,length(nr1init),n_furnace));
-    nr2init = interp1([1:1:length(nr2init)],nr2init, linspace(1,length(nr2init),n_furnace));
-    nr3init = interp1([1:1:length(nr3init)],nr3init, linspace(1,length(nr3init),n_furnace));
-    ndotinit = interp1([1:1:length(ndotinit)],ndotinit, linspace(1,length(ndotinit),n_furnace));
-
-end
-
-x_sumin = x_CH4in  + x_H2in + x_COin +x_H2Oin + x_CO2in + x_N2in; %check to make sure equal to 1
-
-if steady_state == true
-    
-    %inlet values are the same throughout simulation
-    x_CH4step = x_CH4in;
-    x_H2step = x_H2in;
-    x_COstep = x_COin;
-    x_H2Ostep = x_H2Oin;
-    x_CO2step = x_CO2in;
-    x_N2step = x_N2in;
-    Gas_In_Flow_Step = Gas_In_Flow*1;
-    Solids_In_Flow_Step = Solids_In_Flow*1;
-    T_ginstep = T_gin;
-
-end
-
-if stepcase1 == true
-
-    % 25% turndown of syngas with CH4/N2
-    x_CH4step = 0.11138;
-    x_H2step = 0.76842;
-    x_COstep = 0.08439;
-    x_H2Ostep = 0.01120;
-    x_CO2step = 0.00632;
-    x_N2step = 0.01829;
-    Gas_In_Flow_Step = 14.16536754;
-    T_ginstep = 947+273;
-
-end
-
-
-if stepcase2 == true 
-    
-    %Move to 80% of flow
-    x_CH4step = x_CH4in;
-    x_H2step = x_H2in;
-    x_COstep = x_COin;
-    x_H2Ostep = x_H2Oin;
-    x_CO2step = x_CO2in;
-    x_N2step = x_N2in;
-    Gas_In_Flow_Step = Gas_In_Flow*0.8;
-    Solids_In_Flow_Step = Solids_In_Flow*1;
-    T_ginstep = T_gin;
-
-end
-
-if stepcase3 == true 
-    
-    %Move to 80% of flow
-    x_CH4step = x_CH4in;
-    x_H2step = x_H2in;
-    x_COstep = x_COin;
-    x_H2Ostep = x_H2Oin;
-    x_CO2step = x_CO2in;
-    x_N2step = x_N2in;
-    Gas_In_Flow_Step = Gas_In_Flow*1;
-    Solids_In_Flow_Step = Solids_In_Flow*1;
-    T_ginstep = T_gin-100;
-
-end
-
-x_sumstep = x_CH4step  + x_H2step + x_COstep +x_H2Ostep + x_CO2step + x_N2step; %check to make sure equal to 1
 
 x_CH4in = 0.0;
 x_H2in = 0.90;
@@ -208,7 +68,7 @@ x_CO2in = 0.0;
 x_N2in = 0.015;
 Gas_In_Flow = 2078.874*(x_H2in*MM_H2 + x_H2Oin*MM_H2O + x_N2in*MM_N2)/1000; %kg/s
 
-T_gin = 950 + 273;
+T_gin = 925 + 273;
 
 P_g_sp = 101325*2.5;
 
@@ -254,22 +114,8 @@ SOEeff = 37.5; %kWh/kg H2
 %% PID tuning
 
 %from step test
-% Kmetal = -0.0435;
-% tau_metal = 3.2*3600; 
-% 
-% tau_metal_desired = 3600*0.1;
-% 
-% P_metal = tau_metal/(Kmetal*tau_metal_desired);
-% I_metal = P_metal/tau_metal;
-% D_metal = 0.5*I_metal;
-% 
-% Kd = 0.00728;
-% tau_d = 3600;
-
-
 Kmetal = -0.0283;
 tau_metal = 1.3*3600; 
-
 tau_metal_desired = 60*3;
 
 
@@ -279,7 +125,6 @@ D_metal = 0.5*I_metal;
 
 Kd = 0.008729;
 tau_d = 3600*(1.6);
-%tau_d = 3600*(1.7);
 
 
 tau_screw = 60*5; %5 minutes
@@ -342,12 +187,10 @@ hot_standby_eff = 0.009; %
 
 CC_elect = 2000; % $/kW - estimate that down from 2500
 
-%CCsf = 49080*(IO_input_kg)^(0.6538)
 CCsf = 250*ls_prod_kg*8760/1000; % Kruger from Bhaskar
 
 CCelect = CC_elect*MWelect*1000; % $, cost of electrolyzers 
 
-%CCeaf = 1132370*ls_prod_kg^0.4560 %$, cost of electric arc furnace
 CCeaf = 160*ls_prod_kg*8760/1000; % Vogl from Bhaskar
 
 CCpsa = 30622*m_O2^0.6357; % from Rosner all below
@@ -363,43 +206,10 @@ TIC = CCsf + CCelect + CCeaf + CCpsa+ CCfur+ CCcomp + CCcooltow + CCbop;
 tax_rate = 0.02 + 0.02; % tax rate of annual capital cost also insurance and maintenance!
     % Wood gives another 2% for maintenance
 
-%labor = 60*2080*62 %/yr 60 people making $62/hr
-
-% labor = (51*40.85 + 93*30)*2080;
-% 
-% GA = 0.2*labor; % $/yr, 20% of labor
-% 
-% labor_cost = (labor + GA)/8760/3600 % $/s for labor
-
 labor_cost = 19*DRI_prod_kg/3600/1000 + 53*ls_prod_kg/3600/1000; % $/s %Wood, Vogel cited by nature art
-
-
 taxes = tax_rate*TIC/8760/3600;
 
 CRF = 0.1019; %8% rate with 20 yr plant lifetime - from nature paper (r*(1+r)^20)/((1+r)^20-1)
-
-% check this!
-%BOPother = 69819*ls_prod_kg^0.5584 + 6320*ls_prod_kg^.8000 + 174548*ls_prod_kg^0.5583;
-%cool_tower = 60812*(1907.7)^0.6303;
-
-%CCbop = BOPother + cool_tower;
-
-% 
-% cooling_tower = 60812*(1907.7*CF)**0.6303
-% BOPboil = MWboil*513*1000 #513 from my work
-% 
-% BOPother = 69819*ls_prod_kg**0.5584 + 6320*ls_prod_kg**.8000 + 174548*ls_prod_kg**0.5583
-
-%%
-
-% LMP = 57.13;
-% GSE = 250.72;
-% 
-% [mixed_p, cost, emissions_cost, LCOS_bd, SCE_bd] = negative_profit(LMP, GSE, 130, 900,...
-%     out.obj_fun_inputs.data(end,2), out.obj_fun_inputs.data(end,3), out.obj_fun_inputs.data(end,4), out.obj_fun_inputs.data(end,5), out.obj_fun_inputs.data(end,6), out.obj_fun_inputs.data(end,7), out.obj_fun_inputs.data(end,8), out.obj_fun_inputs.data(end,9), out.obj_fun_inputs.data(end,10), out.obj_fun_inputs.data(end,11), out.obj_fun_inputs.data(end,12),...
-%     CCeaf, CCelect, CCsf, CCfur, CCpsa, CCcomp, CCcooltow, CCbop, taxes, labor_cost, cNG, cCarbon, cLime, stack_replace,...
-%     10, 10)
-
 
 %%
 
@@ -418,19 +228,9 @@ ndot_path = ndot_path(day1*n+9:end,:);
 pandcdata = pandcdata(day1*n+9:end,:);
 
 ndot_path = ndot_path(:,3);
-% cut ndot_path
-% ndot_path = ndot_path(24:end);
-% ndot_path(1:10) = 150;
-% 
-% pandcdata = pandcdata(24:end,:);
-% pandcdata(1:10,:) = 150
-
-
 
 tlen = length(ndot_path);
 t = 0:3600:3600*(tlen-1);
-
-
 t = t';
 
 runner = false;
