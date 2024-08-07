@@ -211,28 +211,27 @@ taxes = tax_rate*TIC/8760/3600;
 
 CRF = 0.1019; %8% rate with 20 yr plant lifetime - from nature paper (r*(1+r)^20)/((1+r)^20-1)
 
-%%
+%% Change input conditions for changing 'optimal' flow
 
 n=24;
-day1 = 155;
-day2 = 53;
+day1 = 1;
+day2 = 2;
 
-%day1 = 1;
-%day2 = 365;
-
-
-pandcdata = csvread('caiso_lmp_carbon_clean.csv', 1, 1);
+%Load caiso price and carbon data
 ndot_path = csvread('ndot1.csv');
 
 ndot_path = ndot_path(day1*n+9:end,:);
 pandcdata = pandcdata(day1*n+9:end,:);
 
+%this is the 3 ndot_path from optimization. Can change to others or input
+%custom path
 ndot_path = ndot_path(:,3);
 
 tlen = length(ndot_path);
 t = 0:3600:3600*(tlen-1);
 t = t';
 
+%% If using to get values to inform quadratic model
 runner = false;
 
 if runner == true
